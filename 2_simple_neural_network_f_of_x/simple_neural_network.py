@@ -9,11 +9,11 @@ class SimpleNeuralNetwork:
         self.learning_rate = learning_rate
 
     def activate(self, x):
-        # Activation function: transforms input to value between 0 and 1
+        # Identity activation: output = input (linear). Makes the whole net a linear function.
         return x
 
     def activate_fun_derivative(self, x):
-        # Derivative of sigmoid function for backpropagation
+        # Derivative of identity activation is 1 (used in backprop)
         return 1
 
     def predict(self, x):
@@ -24,7 +24,7 @@ class SimpleNeuralNetwork:
         predicted_value = self.activate(sum)
         return predicted_value
 
-    def train(self, training_inputs, training_outputs, epochs=250):
+    def train(self, training_inputs, training_outputs, epochs=200):
         # Normalize outputs to [0,1] for activation
         max_output = np.max(training_outputs)
         min_output = np.min(training_outputs)
@@ -50,7 +50,7 @@ class SimpleNeuralNetwork:
                       f"Error: {total_error / len(training_inputs):>6.5f}, "
                       f"Weight: {self.weights[0]:>6.4f}, "
                       f"Bias: {self.bias[0]:>6.4f}", end='', flush=True)
-                time.sleep(0.1)
+                time.sleep(0.05)
 
                 # Show progress only on last item of each epoch
                 # if i == len(training_inputs) - 1:

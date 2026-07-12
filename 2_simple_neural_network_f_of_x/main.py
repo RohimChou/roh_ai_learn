@@ -12,7 +12,7 @@ if __name__ == "__main__":
     nn.train(training_inputs, training_outputs)
 
     # Test the trained network
-    print("\nTesting the trained neural network on AND logic:")
+    print("\nTesting the trained neural network on f(x) = 5x + 11:")
     for inputs in np.array([1, 2, 3, 10, 20]):
         prediction = nn.predict(inputs)
         # prediction_denormalized = (prediction * (np.max(training_outputs) - np.min(training_outputs))) + np.min(training_outputs)
