@@ -1,39 +1,51 @@
-import utils.json_utils as json_utils
 import numpy as np
-from KeyVal import KeyVal
+from utils import json_utils
+from InputOutput import InputOutput
 from Neuron import Neuron
 
-def ax_plus_b(input_num, neu: Neuron):
-    return input_num * neu.weights[0] + neu.bias
+def ax_plus_by_plus_c(a: float, x: float, b: float, y: float, c: float):
+    return a * x + b * y + c
 
+# try to fit y = 2a + 3b + 4
 if __name__ == "__main__":
     # 所有資料
-    kv1 = KeyVal(1, 2)
-    kv2 = KeyVal(2, 4)
-    kv3 = KeyVal(3, 6)
-    kv4 = KeyVal(4, 8)
-    kv5 = KeyVal(5, 10)
-    kv6 = KeyVal(6, 12)
-    kv7 = KeyVal(7, 14)
+    # y = 2a + 3b + 4
+    io1 = InputOutput(1, 1,  9)   # 2*1 + 3*1 + 4
+    io2 = InputOutput(2, 1, 11)   # 4 + 3 + 4
+    io3 = InputOutput(1, 2, 12)   # 2 + 6 + 4
+    io4 = InputOutput(3, 2, 16)   # 6 + 6 + 4
+    io5 = InputOutput(2, 3, 17)   # 4 + 9 + 4
+    io6 = InputOutput(4, 1, 15)   # 8 + 3 + 4
+    io7 = InputOutput(1, 4, 18)   # 2 + 12 + 4
+    io8 = InputOutput(3, 3, 19)   # 6 + 9 + 4
+    answers = np.array([io1, io2, io3, io4, io5, io6, io7, io8]);
 
-    # 訓練用資料
-    training_data = np.array([kv1, kv2, kv4, kv5, kv7])
+    neu1 = Neuron(2)
+    step_size = 0.05
 
-    # 開始
-    neu1 = Neuron(input_cnt=1)
-    learning_rate = 0.0863 # 發散點在 0.086251 左右, 超過就發散
+    for i in range(200):
+        for ans in answers:
+            predict = ax_plus_by_plus_c(
+                neu1.weights[0],
+                ans.input1,
+                neu1.weights[1],
+                ans.input2,
+                neu1.bias
+            )
 
-    for epoch in range(50):
-        print(f"\n\n{epoch + 1}")
-        for key_val in training_data:
-            ax_pb = ax_plus_b(key_val.key, neu1)
-            error = key_val.val - ax_pb
+            error = ans.output1 - predict
+            # 修正
+            neu1.weights[0] = neu1.weights[0] + error * ans.input1 * step_size
+            neu1.weights[1] = neu1.weights[1] + error * ans.input2 * step_size
+            neu1.bias = neu1.bias + error * 1 * step_size
 
-            print(f'{key_val.key} {key_val.val:>2} ax_pb {ax_pb:>5.2f}  error {error:>5.2f} {neu1.weights[0]:.4f} += ',
-                  f"{learning_rate * error * key_val.key:.4f}")
-
-            # 更新神經元
-            neu1.weights[0] += learning_rate * error * key_val.key
-            neu1.bias += learning_rate * error
+    predict = ax_plus_by_plus_c(
+        neu1.weights[0],
+        5,
+        neu1.weights[1],
+        6,
+        neu1.bias
+    )
 
     print(json_utils.dumps(neu1))
+    print(predict) # 32
