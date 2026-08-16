@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from utils import json_utils
 from InputOutput import InputOutput
 from Neuron import Neuron
@@ -21,7 +22,14 @@ if __name__ == "__main__":
     answers = np.array([io1, io2, io3, io4, io5, io6, io7, io8]);
 
     neu1 = Neuron(2)
-    step_size = 0.05
+    step_size = 0.1
+
+    # 畫圖用
+    fig, ax = plt.subplots()
+    prediction_errors = []
+    a_values = []
+    b_values = []
+    c_values = []
 
     for i in range(200):
         for ans in answers:
@@ -34,10 +42,30 @@ if __name__ == "__main__":
             )
 
             error = ans.output1 - predict
+
             # 修正
             neu1.weights[0] = neu1.weights[0] + error * ans.input1 * step_size
             neu1.weights[1] = neu1.weights[1] + error * ans.input2 * step_size
             neu1.bias = neu1.bias + error * 1 * step_size
+
+            # 每次修正後，記錄 a、b、c 的實際值。
+            prediction_errors.append(error)
+            a_values.append(neu1.weights[0])
+            b_values.append(neu1.weights[1])
+            c_values.append(neu1.bias)
+
+    display_count = 300
+    updates = range(1, display_count + 1)
+    ax.plot(updates, prediction_errors[:display_count], label="prediction error", alpha=0.7)
+    ax.plot(updates, a_values[:display_count], label="a value")
+    ax.plot(updates, b_values[:display_count], label="b value")
+    ax.plot(updates, c_values[:display_count], label="c value")
+    ax.axhline(0, color="black", linewidth=0.8)
+    ax.set_xlabel("Update")
+    ax.set_ylabel("Value / Error")
+    ax.legend()
+    plt.grid()
+    plt.show()
 
     predict = ax_plus_by_plus_c(
         neu1.weights[0],
