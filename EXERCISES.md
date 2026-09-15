@@ -1,82 +1,89 @@
-# 神經網路練習階梯 (從 0_clean 重來)
+# 神經網路練習計畫
 
-一次爬一階。每一階都是**上一階的網路壞掉了**, 而修好它的方法就是那一階的重點。
+更新：2026-09-15。依現有程式與筆記重排。每次增加一個主要概念，先用能手算的小問題驗證，再擴大規模。
 
-核心結構:
+## 已走過的主線
 
-- **第 1~4 階**: 完全不用改 neuron 的 code, 只換資料。網路一直是「一顆 neuron, ax+b」
-- **第 5 階**: 一顆線性 neuron 徹底做不到 → 解法是換 **feature**, 不是加 layer
-- **第 7 階**: feature 也想不出來了 → 這時 hidden layer 才真的有存在意義
+| 階段 | 內容 | 現況 |
+| :-- | :-- | :-- |
+| 01 | `2x`：neuron 與學習迴圈 | `26_01_solve2x` 與筆記 |
+| 02 | `2a+3b+4`：多輸入與 bias | `26_02_two_inputs` 與筆記 |
+| 03 | `x²`：直線限制與 feature | `26_03_x_squared` 與筆記 |
+| 04 | 多項式迴歸 | `26_04_polynomial` 與筆記；部分延伸題未勾完 |
+| 05 | abs → 四顆 ReLU 的碗 + output bias | 已保存 `26_05_abs_bowl`；`0_clean` 保留，仍有殘差 |
 
-| # | 目標公式 | 新觀念 | code 要改什麼 |
-| :- | :- | :- | :- |
-| 1 | `y = 2x` | ✅ 已完成 (`0_clean`) | — |
-| 2 | `y = 2x + 3` | bias 真的有在工作 | 只換資料。可以試著把 bias 鎖在 0, 看它怎麼學不起來 |
-| 3 | `y = 2a + 3b + 4` | 多輸入 | `Neuron(input_cnt=2)`, weight 更新改成跑迴圈 |
-| 4 | `y = 2a + 3b - 4c + 5` | 3 個變數也一樣 | 只換資料 — 從 2 變 N 完全不用改 code, 這就是重點 |
-| 5 | `y = x²` | **一顆線性 neuron 做不到** | 把 `x²` 當輸入餵進去。還是一顆 neuron, 學出 weight ≈ 1 |
-| 6 | `y = 3x² + 2x + 1` | 多項式迴歸 = 線性 neuron 換個 feature | 輸入 `[x², x]`, 一顆 neuron 學出全部 3 個係數 |
-| 7 | `y = sin(x)` | feature 想不完了 | 這時才加 hidden layer |
+`2x+3` 的 bias 已在後續題使用，不另重做。N 輸入的收納需求延到 N 顆 hidden。舊 sin 暫停紀錄是背景，目前沒有對應程式與筆記可直接接續。
 
----
+## 接下來的順序
 
-## 第 3 階練習資料 (`y = 2a + 3b + 4`)
+| 順序 | 練習 | 新觀念 | 完成證據 |
+| :-- | :-- | :-- | :-- |
+| 06A | 固定 `relu(x),relu(-x)`，學 `-abs(x)` | output weight 可以為負 | weight 約 -1，內插最大誤差 < 0.05 |
+| 06B | 同一倒 V，放開 hidden | chain rule 多乘 output weight | 手算與七參數有限差分吻合，內插達標 |
+| 07 | 同一題改為 N 顆 | list / array 管理參數 | 兩顆時 forward 與單步更新一致；換數量不用複製更新式 |
+| 08 | sin：固定折點 → 學折點 | 從手設 feature 到學 feature | 比較直線與折線的 validation MSE，分開看外推 |
+| 09 | 少量帶雜訊的 sin | 過擬合、validation、early stopping | train/validation 曲線與未調參的 test 結果 |
+| 10 | 手寫版對照 PyTorch | tensor 與 autograd | 同資料、同參數的 forward / gradient 吻合 |
+| 11 | 二元分類 → XOR | sigmoid、cross entropy、決策邊界 | 先解線性可分題，再用 hidden 解 XOR，畫平面輸出 |
 
-用現成的 `InputOutput` class (剛好就是 `input1` / `input2` / `output1` 這個形狀):
+未來階段均為待做。Python／AI 練習固定在 `0_clean`；使用者表示 OK 後，直接建立 `26_xx_topic` 快照並驗證，保留練習區。每篇練習筆記末尾附完整 source 或實際入口與支援檔路徑，並隨歸檔更新。此流程不套用到其他學習主題。
 
-```python
-    # y = 2a + 3b + 4
-    io1 = InputOutput(1, 1,  9)   # 2*1 + 3*1 + 4
-    io2 = InputOutput(2, 1, 11)   # 4 + 3 + 4
-    io3 = InputOutput(1, 2, 12)   # 2 + 6 + 4
-    io4 = InputOutput(3, 2, 16)   # 6 + 6 + 4
-    io5 = InputOutput(2, 3, 17)   # 4 + 9 + 4
-    io6 = InputOutput(4, 1, 15)   # 8 + 3 + 4
-    io7 = InputOutput(1, 4, 18)   # 2 + 12 + 4
-    io8 = InputOutput(3, 3, 19)   # 6 + 9 + 4
+## 練倒 V：拆開新增概念
 
-    # 訓練用資料
-    training_data = np.array([io1, io2, io3, io4, io6, io8])
-    # 留兩筆沒訓練過的驗證
-    test_data = np.array([io5, io7])
-```
+### 固定 hidden，只學 output
 
-更新的地方: 每個 weight 要乘上**自己對應的那個輸入**, 所以 a 跟 b 每次移動的量不一樣。
+- 訓練 `x=-3..3`、間隔 0.5，答案 `-abs(x)`。
+- hidden 固定 `relu(x),relu(-x)`，兩個 output weight 與 bias 從 0 開始。
+- step size 先試 0.01、1000 epoch；每 epoch 結束以同一組參數重算 MSE。
+- 驗證 `-2.75,-1.25,0.25,2.25`，最大絕對誤差 < 0.05；外推 `-5,5` 另記。
+- 這相當於線性迴歸換 feature，先看負權重如何把 V 翻轉。
 
-```python
-    pred = neu1.weights[0] * io.input1 + neu1.weights[1] * io.input2 + neu1.bias
-    error = io.output1 - pred
+### 放開 hidden，驗算責任
 
-    neu1.weights[0] += learning_rate * error * io.input1
-    neu1.weights[1] += learning_rate * error * io.input2
-    neu1.bias       += learning_rate * error   # bias 的「輸入」永遠是 1
-```
+- hidden weight `1,-1`、hidden bias `0,0`、output weight `-0.5,-0.5`、output bias `0`。先用接近解的起點排除初始化干擾，再試其他起點。
+- forward → 算全部梯度 → 更新全部參數；hidden gradient 必須乘更新前的 output weight。
+- 單筆 loss 用 `0.5*(predict-answer)**2`。七參數中心差分 epsilon `1e-5`，避開 ReLU 折點，導數絕對差先要求 < `1e-5`。
+- 詳細推導在 wiki `06 output weight — 讓折線能加也能減`。
 
-- `learning_rate` 要調小: `0_clean` 的 `0.0562` 是單輸入時調的, 兩個輸入的梯度會疊加, 大概 `0.1` 附近就發散。從 **`0.02`** 開始, 跑 300 epoch 左右
-- 收斂後直接看 `neu1.weights ≈ [2, 3]`、`bias ≈ 4` — 對得起來才代表它真的學到公式, 而不是硬背那 6 筆資料
+## 管理 N 顆：只改收納方式
 
----
+保持兩顆、同初值、同資料順序，把 hidden weights、hidden biases、output weights 改成 list / array。比對 forward 與單筆更新誤差 < `1e-10`，再試四顆。
 
-## 第 5、6 階的重點
+此時不一起換目標、optimizer 或初始化，方便定位差異。先會用迴圈，再考慮矩陣化，不急著寫通用框架。
 
-第 5 階最值得慢慢玩。`y = x²` 看起來像是「網路不夠深」, 但實際上改一行就好 — **換餵進去的東西**。
+## 擬合 sin：先固定折點，再學折點
 
-第 6 階接著證明: 多項式迴歸就只是線性 neuron 換個 feature 而已。餵 `[x², x]` 進去, 出來的會是 `weights[0]=3, weights[1]=2, bias=1`, 跟公式一模一樣。能直接從 `neu1.weights` 讀出真正的係數, 是很好的驗證方式。
+1. 用 `np.linspace(-np.pi,np.pi,41)` 訓練，40 個相鄰中點作 validation。
+2. 先 fit 直線，記錄 validation MSE 作基準。
+3. 用 8 顆向右開的 ReLU，折點 `np.linspace(-np.pi,np.pi,8,endpoint=False)`；hidden weight=1、hidden bias=-折點，只學 output weight 與 bias。左端折點提供區間的基礎斜率。
+4. 放開 hidden，接續上述參數，維持同資料與評估；先確認能繼續降低誤差，再另做初始化實驗。
+5. 比較 4、8、16 顆；隨機初始化另外跑 seeds `0..4`，記錄每組與中位數，不只展示最佳一次。
+6. 教學目標先設 validation MSE < 0.01，且低於直線基準；未達標先查梯度，再一次改一個設定。
+7. 獨立觀察 `[-2pi,2pi]` 外推：有限顆 ReLU 離開最外側折點後是直線，沒有內建週期性。
 
-第 6 階也會自己冒出兩個真問題, 兩個都值得踩:
+這裡先不增加 hidden layer 深度。帶正負 output weight 的折線已能表示上彎與下彎。
 
-- **scaling**: `x=7` 時 `x²=49`, 這個 weight 的梯度是另一個的 ~50 倍, learning rate 一定會炸。你會被逼著要嘛把 LR 調到很小, 要嘛把 feature 正規化 — 然後你就會親身感受到為什麼要做這件事
-- 你在 `0_clean` 註解裡記的那個「發散點」, 到這裡會變成**每個 feature 各自有一個**, 不再是整個網路一個
+## 觀察過擬合
 
----
+固定 seed，建立 21 個 `[-pi,pi]` 訓練點，答案加標準差 0.1 的常態雜訊。validation 用另一批區間內點；這個合成題可用無雜訊 sin 當驗證答案，觀察是否學到真曲線。
 
-## 兩個現有 code 的提醒
+比較 4 與 32 顆、短與長訓練，畫 train/validation loss。保存 validation 最佳參數，另留獨立 test 點，只在選定設定後評估。若沒有出現過擬合，就如實記錄，不強迫符合故事。
 
-- `Neuron.__init__` 把所有 weight 設成 `0`。第 1~6 階完全沒問題 (線性迴歸只有一個最低點, 從哪開始都會走到同一個地方)。但第 7 階會被它害死: 每顆 hidden neuron 拿到的梯度一模一樣 → 永遠長得一樣 (symmetry)。**random init 到第 7 階才有必要**, 在它壞掉之前不用先改
-- `Neuron.py` 的 `bias = 0` 寫了兩次 (第 3 行跟第 8 行), 沒影響但可以刪掉一行
+## 後續方向
 
-## 建議的資料夾命名
+PyTorch 階段再確認官方安裝方式與 API，不在這裡綁定版本。分類階段另外推導 sigmoid、cross entropy 與數值穩定性。
 
-`01_2x` → `02_2x_plus_3` → `03_two_inputs` → `04_n_inputs` → `05_x_squared` → `06_polynomial` → `07_sin_hidden`
+基礎完成後依興趣分支：
 
-照學習順序排, 比現在混在一起的編號好找。
+- 強化學習：小型環境 → Q-table → 探索 → 函數近似。
+- 語言模型：token → embedding → next-token prediction → attention。
+
+強化學習不是 LLM 的必要先修。現在不必展開遠期課程。
+
+## 每階的紀錄與判斷
+
+記錄目標、模型、資料範圍、初值 / seed、資料順序、更新方式、step size、epoch、train / validation 指標與失敗解釋。上述門檻是教學設定，不是跨任務標準。
+
+loss 卡住不一定是 local minimum；加顆數與 random init 不保證收斂。線性最小平方的參數唯一性需要資料矩陣滿秩；步長穩定性受整組 feature 尺度與相關性影響，並非各 feature 有獨立發散點。
+
+最佳化與泛化的區別參考作者教材：[Deep Learning, Chapter 8](https://www.deeplearningbook.org/contents/optimization.html)。本計畫順序與門檻是依本專案進度設計。
