@@ -1,12 +1,12 @@
-# 接續點：四顆 ReLU 的碗 → 倒 V 的 output weight
+# 接續點：06 四顆 ReLU 的碗 → 07 倒 V 的 output weight
 
-更新：2026-09-15。使用者表示 `0_clean` 練習大致完成，可以往下一階。
+更新：2026-09-18。06 碗題於 2026-09-15 表示大致完成；目前 `0_clean/main.py` 是 `Hello World` 起始檔，07 倒 V 尚未實作。碗題請讀 `26_06_abs_bowl` 快照。
 
 ## 目前實際狀態
 
-- `0_clean/main.py`：四顆 ReLU + output bias，學 `abs(x+2)+abs(x)+abs(x-2)`；21 筆資料，step size 0.05，500 epoch。
-- `model.py` 管模型與答案；`plot.py` 管 TrainingPlot；繪圖工具在 `utils/draw/`。
-- `26_01_solve2x` 到 `26_04_polynomial` 已存在，目前碗題已保存至 `26_05_abs_bowl`；`0_clean` 保留，供下一題練習。
+- `0_clean/main.py` 尚無訓練內容；活動目錄沒有 `model.py`、`plot.py`，不要誤當成碗題完整程式。
+- `26_06_abs_bowl/main.py`：四顆 ReLU + output bias，學 `abs(x+2)+abs(x)+abs(x-2)`；21 筆資料，step size 0.05，500 epoch。
+- 快照內 `model.py` 管模型與答案、`plot.py` 管 TrainingPlot、`utils/draw/` 管繪圖工具；01–04 的快照也已存在。下一題在 `0_clean` 實作，先做純數值的 07A 即可。
 - 舊計畫提到的 `main_multi.py`、`main.py.bk260825` 與 sin 筆記，目前指定位置都不存在；後續依現有基礎重建。
 - abs 的 C 組與延伸題沒有完成證據，保留作選做回顧，不阻擋前進。
 
@@ -24,12 +24,14 @@
 
 ## 下一次直接做
 
-1. 讀 wiki `05 多顆 ReLU — 從 V 到碗`，代入精確參數確認表示能力，作為收尾。
-2. 做 `y=-abs(x)`：固定 hidden 為 `relu(x),relu(-x)`，只學兩個 output weight 與 output bias。三個參數從 0 開始，step size 先試 0.01、1000 epoch。
-3. 放開 hidden：hidden weight `1,-1`、hidden bias `0,0`、output weight `-0.5,-0.5`、output bias `0`。先手算一筆，再對七參數做有限差分。
+先讀 wiki `00 從手寫 ReLU 到現代神經網路 — 學習脈絡`，回顧模型限制與本階要新增的 output weight。
+
+1. 讀 wiki `06 多顆 ReLU — 從 V 到碗`，代入精確參數確認表示能力，作為收尾。
+2. 做 07A `y=-abs(x)`：固定 hidden 為 `relu(x),relu(-x)`，只學兩個 output weight 與 output bias。三個參數從 0 開始，step size 先試 0.01、1000 epoch。
+3. 做 07B，放開 hidden：hidden weight `1,-1`、hidden bias `0,0`、output weight `-0.5,-0.5`、output bias `0`。先手算一筆，再對七參數做有限差分。
 4. 內插驗證 `-2.75,-1.25,0.25,2.25`，最大絕對誤差 < 0.05；外推 `-5,5` 另記。這是本題教學門檻。
 
-推導與單步更新參考在 wiki `06 output weight — 讓折線能加也能減`；後續順序在 `EXERCISES.md`。
+推導與單步更新參考在 wiki `07 output weight — 讓折線能加也能減`；後續順序在 `EXERCISES.md`。
 
 ## 協作規則
 

@@ -1,6 +1,6 @@
 # 神經網路練習計畫
 
-更新：2026-09-15。依現有程式與筆記重排。每次增加一個主要概念，先用能手算的小問題驗證，再擴大規模。
+更新：2026-09-18。每次增加一個主要概念，先用能手算的小問題驗證，再擴大規模。05 是兩顆 abs、06 是四顆碗、07 是 output weight。
 
 ## 已走過的主線
 
@@ -10,7 +10,8 @@
 | 02 | `2a+3b+4`：多輸入與 bias | `26_02_two_inputs` 與筆記 |
 | 03 | `x²`：直線限制與 feature | `26_03_x_squared` 與筆記 |
 | 04 | 多項式迴歸 | `26_04_polynomial` 與筆記；部分延伸題未勾完 |
-| 05 | abs → 四顆 ReLU 的碗 + output bias | 已保存 `26_05_abs_bowl`；`0_clean` 保留，仍有殘差 |
+| 05 | abs：兩顆 ReLU 拼出 V | wiki `05 _ y = abs(x) — 兩顆一起折` 保留完整教學 source |
+| 06 | 四顆 ReLU 的碗 + output bias | 已保存 `26_06_abs_bowl`，仍有殘差；活動 `0_clean/main.py` 目前為 `Hello World` |
 
 `2x+3` 的 bias 已在後續題使用，不另重做。N 輸入的收納需求延到 N 顆 hidden。舊 sin 暫停紀錄是背景，目前沒有對應程式與筆記可直接接續。
 
@@ -18,13 +19,13 @@
 
 | 順序 | 練習 | 新觀念 | 完成證據 |
 | :-- | :-- | :-- | :-- |
-| 06A | 固定 `relu(x),relu(-x)`，學 `-abs(x)` | output weight 可以為負 | weight 約 -1，內插最大誤差 < 0.05 |
-| 06B | 同一倒 V，放開 hidden | chain rule 多乘 output weight | 手算與七參數有限差分吻合，內插達標 |
-| 07 | 同一題改為 N 顆 | list / array 管理參數 | 兩顆時 forward 與單步更新一致；換數量不用複製更新式 |
-| 08 | sin：固定折點 → 學折點 | 從手設 feature 到學 feature | 比較直線與折線的 validation MSE，分開看外推 |
-| 09 | 少量帶雜訊的 sin | 過擬合、validation、early stopping | train/validation 曲線與未調參的 test 結果 |
-| 10 | 手寫版對照 PyTorch | tensor 與 autograd | 同資料、同參數的 forward / gradient 吻合 |
-| 11 | 二元分類 → XOR | sigmoid、cross entropy、決策邊界 | 先解線性可分題，再用 hidden 解 XOR，畫平面輸出 |
+| 07A | 固定 `relu(x),relu(-x)`，學 `-abs(x)` | output weight 可以為負 | weight 約 -1，內插最大誤差 < 0.05 |
+| 07B | 同一倒 V，放開 hidden | chain rule 多乘 output weight | 手算與七參數有限差分吻合，內插達標 |
+| 08 | 同一題改為 N 顆 | list / array 管理參數 | 兩顆時 forward 與單步更新一致；換數量不用複製更新式 |
+| 09 | sin：固定折點 → 學折點 | 從手設 feature 到學 feature | 比較直線與折線的 validation MSE，分開看外推 |
+| 10 | 少量帶雜訊的 sin | 過擬合、validation、early stopping | train/validation 曲線與未調參的 test 結果 |
+| 11 | 手寫版對照 PyTorch | tensor 與 autograd | 同資料、同參數的 forward / gradient 吻合 |
+| 12 | 二元分類 → XOR | sigmoid、cross entropy、決策邊界 | 先解線性可分題，再用 hidden 解 XOR，畫平面輸出 |
 
 未來階段均為待做。Python／AI 練習固定在 `0_clean`；使用者表示 OK 後，直接建立 `26_xx_topic` 快照並驗證，保留練習區。每篇練習筆記末尾附完整 source 或實際入口與支援檔路徑，並隨歸檔更新。此流程不套用到其他學習主題。
 
@@ -43,7 +44,7 @@
 - hidden weight `1,-1`、hidden bias `0,0`、output weight `-0.5,-0.5`、output bias `0`。先用接近解的起點排除初始化干擾，再試其他起點。
 - forward → 算全部梯度 → 更新全部參數；hidden gradient 必須乘更新前的 output weight。
 - 單筆 loss 用 `0.5*(predict-answer)**2`。七參數中心差分 epsilon `1e-5`，避開 ReLU 折點，導數絕對差先要求 < `1e-5`。
-- 詳細推導在 wiki `06 output weight — 讓折線能加也能減`。
+- 詳細推導在 wiki `07 output weight — 讓折線能加也能減`。
 
 ## 管理 N 顆：只改收納方式
 
